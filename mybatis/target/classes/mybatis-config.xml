@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!--引入外部配置文件-->
+    <properties resource="db.properties" />
+
+    <!--全局配置-->
+    <settings>
+        <!--将执行的SQL及查询结果输出到控制台-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <!--开启嵌套查询的延迟加载策略-->
+        <setting name="lazyLoadingEnabled" value="true" />
+        <!--指定对象的哪些方法触发一次延迟加载。默认值equals,clone,hashCode,toString-->
+        <setting name="lazyLoadTriggerMethods" value="" />
+        <!--开启驼峰命名自动映射-->
+        <setting name="mapUnderscoreToCamelCase" value="true" />
+    </settings>
+
+    <!--类型别名-->
+    <typeAliases>
+        <!--<typeAlias type="com.bjpowernode.pojo.Product" alias="Product" />-->
+        <!--为指定包下的所有类起别名：类名-->
+        <package name="com.bjpowernode.pojo" />
+    </typeAliases>
+
+    <!--环境配置-->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${db.driver}"/>
+                <property name="url" value="${db.url}"/>
+                <property name="username" value="${db.username}"/>
+                <property name="password" value="${db.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--注册映射文件
+        1. 映射文件必须和持久层接口放在同一个包下
+        2. 映射文件的名称必须和持久层接口的名称一致
+    -->
+    <mappers>
+        <!--<mapper resource="ProductMapper.xml" />-->
+        <!--<mapper resource="TypeMapper.xml" />-->
+        <package name="com.bjpowernode.mapper" />
+    </mappers>
+
+</configuration>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bjpowernode.mapper.TypeMapper">
+    <!--
+    resultType：将查询结果中的一行数据处理成的类型
+    -->
+    <select id="getAll" resultType="com.bjpowernode.pojo.Type">
+        select id,typeName as name from type
+    </select>
+
+    <!--使用resultMap标签映射查询结果中的字段名和指定类型(type)中属性名之间的关系-->
+    <resultMap id="typeMap" type="com.bjpowernode.pojo.Type">
+        <!--
+            主键字段用id标签映射，其它属性用result标签映射
+
+            property: 类中的属性名
+            column：查询结果中的字段名，注意: 不一定是表中的字段名
+        -->
+        <id property="id" column="id" />
+        <result property="name" column="typeName" />
+    </resultMap>
+    
+    <select id="getAll2" resultMap="typeMap">
+        select * from type
+    </select>
+
+    <!--映射查询字段和type中属性之间的关系-->
+    <resultMap id="typeMap2" type="com.bjpowernode.pojo.Type">
+        <!--id和result标签只能用于简单（基本类型和String）类型的映射-->
+        <id property="id" column="t_id" />
+        <result property="name" column="t_name" />
+        <!--集合类型使用collection标签来映射集合的泛型（ofType）中的属性和查询字段之间的关系-->
+        <collection property="products" ofType="com.bjpowernode.pojo.Product">
+            <id property="id" column="p_id" />
+            <result property="name" column="p_name" />
+            <result property="tid" column="p_tid" />
+            <result property="price" column="p_price" />
+            <result property="num" column="p_num" />
+            <result property="imgurl" column="p_imgurl" />
+            <result property="description" column="p_description" />
+        </collection>
+    </resultMap>
+    
+    <select id="get" resultMap="typeMap2">
+        SELECT
+            t.id t_id,
+            t.name t_name,
+            p.id p_id,
+            p.name p_name,
+            p.tid p_tid,
+            p.price p_price,
+            p.num p_num,
+            p.imgurl p_imgurl,
+            p.description p_description
+        FROM
+            type t
+            LEFT JOIN product p ON t.id = p.tid
+        WHERE
+            t.id=#{id}
+    </select>
+
+    <resultMap id="typeMap3" type="com.bjpowernode.pojo.Type">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <!--第2次查询
+            column: 第2次查询的条件使用哪个字段
+            select: 第2次查询使用哪个命名空间下的哪个方法
+        -->
+        <collection property="products" column="id"
+                    select="com.bjpowernode.mapper.ProductMapper.getByTid" />
+    </resultMap>
+
+    <!--嵌套查询：第1次查询-->
+    <select id="get2" resultMap="typeMap3">
+        select * from type where id=#{id}
+    </select>
+
+    <select id="getById" resultType="com.bjpowernode.pojo.Type">
+        select * from type where id=#{id}
+    </select>
+
+    <update id="update">
+        update type set name=#{arg1} where id=#{arg0}
+    </update>
+</mapper>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bjpowernode.mapper.ProductMapper">
+
+    <!--开启二级缓存
+        特点：
+        1. 缓存的管理是以命名空间为单位的。
+        2. 缓存生命周期：SQLSession关闭时，数据存入磁盘作为缓存，到当前命名空间下当任意更新操作结束
+            即只要有更新（insert、delete、update）操作，当前命名空间下的二级将全部清空
+        3. 存入到缓存中的类必须实现 Serializable 接口
+        4. 对于多表关联查询而已，不应该使用二级缓存，有可能产生“脏数据”，因为更新
+            关联表中的数据并不会影响当前命名空间下的缓存
+    -->
+    <cache />
+
+    <select id="get" resultType="com.bjpowernode.pojo.Product">
+        select * from product where id=#{id}
+    </select>
+    <insert id="save">
+        insert into product values(
+            #{id}, #{name},#{tid},#{price},#{num},#{imgurl},#{description}
+        )
+    </insert>
+    <insert id="save2">
+        insert into product values(
+            #{id},#{name},#{tid},#{price},#{num},#{imgurl},#{description}
+        )
+    </insert>
+
+    <select id="getByCond" resultType="com.bjpowernode.pojo.Product">
+        select * from product where name like #{name} and price like #{price}
+    </select>
+    <select id="getByName" resultType="com.bjpowernode.pojo.Product">
+        select * from product where name like concat('%',#{name},'%')
+    </select>
+
+    <select id="getByName2" resultType="com.bjpowernode.pojo.Product">
+        select * from product where name like '%' #{name} '%'
+    </select>
+
+    <select id="getList" resultType="com.bjpowernode.pojo.Product">
+        select * from product
+        <where>
+            <if test="name!=null and name!=''">
+                and name like '%' #{name} '%'
+            </if>
+            <if test="description!=null and description!=''">
+                and description like '%' #{description} '%'
+            </if>
+        </where>
+    </select>
+
+    <delete id="delete">
+        delete from product where id in
+        <foreach collection="array" item="id2" open="(" close=")" separator=",">
+            #{id2}
+        </foreach>
+    </delete>
+
+    <insert id="saveList">
+        insert into product values
+        <foreach collection="list" item="p" separator=",">
+            (
+                #{p.id},
+                #{p.name},
+                #{p.tid},
+                #{p.price},
+                #{p.num},
+                #{p.imgurl},
+                #{p.description}
+            )
+        </foreach>
+    </insert>
+
+    <resultMap id="proMap" type="com.bjpowernode.pojo.Product">
+        <id property="id" column="p_id" />
+        <result property="name" column="p_name" />
+        <result property="tid" column="p_tid" />
+        <result property="price" column="p_price" />
+        <result property="num" column="p_num" />
+        <result property="imgurl" column="p_imgurl" />
+        <result property="description" column="p_description" />
+        <!--使用 association 来映射property中的属性名和查询字段之间的关系-->
+        <association property="type">
+            <id property="id" column="t_id" />
+            <result property="name" column="t_name" />
+        </association>
+    </resultMap>
+
+    <!--关联查询不使用二级缓存-->
+    <select id="get2" resultMap="proMap" useCache="false">
+        SELECT
+            t.id t_id,
+            t.NAME t_name,
+            p.id p_id,
+            p.NAME p_name,
+            p.tid p_tid,
+            p.price p_price,
+            p.num p_num,
+            p.imgurl p_imgurl,
+            p.description p_description
+        FROM
+            product p
+            LEFT JOIN type t ON t.id = p.tid
+        WHERE
+            p.id=#{id}
+    </select>
+
+
+    <select id="getByTid" resultType="Product">
+        select * from product where tid=#{tid}
+    </select>
+
+    <resultMap id="proMap2" type="Product">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="tid" column="tid" />
+        <result property="price" column="price" />
+        <result property="num" column="num" />
+        <result property="imgurl" column="imgurl" />
+        <result property="description" column="description" />
+
+        <!--第2次查询:查询类别-->
+        <association property="type" column="tid" fetchType="eager"
+                     select="com.bjpowernode.mapper.TypeMapper.getById" />
+    </resultMap>
+
+    <!--嵌套查询：第1次查询-->
+    <select id="get3" resultMap="proMap2">
+        select * from product where id=#{id}
+    </select>
+
+</mapper>
